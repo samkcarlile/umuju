@@ -1,0 +1,15 @@
+{
+  "name": "umuju",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "pnpm grammar:build",
+    "grammar:build": "nearleyc ./src/parser/grammar.ne -o ./src/parser/grammar.js",
+    "grammar:watch": "nodemon --exec \"pnpm grammar:build\" -w ./src/parser/grammar.ne",
+    "grammar:railroad": "nearley-railroad -o ./docs/grammar.html ./src/parser/grammar.ne",
+    "start": "node index.js"
+  },
+  "author": "Sam Carlile <samkcarlile@gmail.com>",
+  "license": "MIT"
+}
