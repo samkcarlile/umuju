@@ -26,7 +26,7 @@
 🏷 = 📟👂 “What’s your name?”
 
 💬 You can use ✨ for templating strings
-📟🗣 “Hello ✨🏷!”
+📟🗣 `Hello ✨🏷!`
 ```
 
 ---
@@ -53,24 +53,24 @@
 🌳
 
 💬 Send a GET request to a url, checking for an error
-✉️,⛔️ = 📡🤏 “https://jsonplaceholder.typicode.com/todos/✨🆔”
+✉️,⛔️ = 📡🤏 `https://jsonplaceholder.typicode.com/todos/✨🆔`
 🤔 ⛔️ 🌴
   📟🗣 "There was an error! ✨⛔️"
   👋
 🌴
 
 💬 Convert the response body to JSON
-📄 = 📇👈 < ✉️🚹
+📄 = 📇👈 ⬅️ ✉️🚹
 
 💬 We take the "completed" property from the body
 💬 and convert it to a boolean
-✅ = ☯️ < 📄🔑 "completed"
+✅ = ☯️ ⬅️ 📄🔑 "completed"
 
 💬 An if/else statement checking if the "completed" property is true
 🤔 ✅ 🎄
-  📟🗣 "Todo #✨🆔 is complete!"
+  📟🗣 `Todo #✨🆔 is complete!`
 🎄 🙃 🌴
-  📟🗣 "Todo #✨🆔 is not complete. 😔"
+  📟🗣 `Todo #✨🆔 is not complete. 😔`
 🌴
 ```
 

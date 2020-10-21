@@ -9,17 +9,17 @@
   👋
 🌳
 
-✉️,⛔️ = 📡🤏 “https://jsonplaceholder.typicode.com/todos/✨🆔”
+✉️,⛔️ = 📡🤏 `https://jsonplaceholder.typicode.com/todos/✨🆔`
 🤔 ⛔️ 🌴
-  📟🗣 "There was an error! ✨⛔️"
+  📟🗣 `There was an error! ✨⛔️`
   👋
 🌴
 
-📄 = 📇👈 < ✉️🚹
-✅ = ☯️ < 📄🔑 "completed"
+📄 = 📇👈 ⬅️ ✉️🚹
+✅ = ☯️ ⬅️ 📄🔑 "completed"
 
 🤔 ✅ 🎄
-  📟🗣 "Todo #✨🆔 is complete!"
+  📟🗣 `Todo #✨🆔 is complete!`
 🎄 🙃 🌴
-  📟🗣 "Todo #✨🆔 is not complete. 😔"
+  📟🗣 `Todo #✨🆔 is not complete. 😔`
 🌴
