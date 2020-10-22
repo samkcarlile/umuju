@@ -60,7 +60,7 @@
 🌴
 
 💬 Convert the response body to JSON
-📄 = 📇👈 ⬅️ ✉️🚹
+📄 = 📇👈 ✉️🚹
 
 💬 We take the "completed" property from the body
 💬 and convert it to a boolean
