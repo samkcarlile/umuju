@@ -1,5 +1,13 @@
 const moo = require('moo');
-const emojiRegex = require('emoji-regex/RGI_Emoji.js')().source;
+const {
+  treeRegex,
+  speechBallooonRegex,
+  otherEmojiRegex,
+} = require('./customEmojiRegex');
+const emojiRegex = () =>
+  new RegExp(
+    `${require('emoji-regex/RGI_Emoji.js')().source}|${otherEmojiRegex.source}`
+  );
 
 const lexer = moo.states({
   main: {
@@ -19,11 +27,11 @@ const lexer = moo.states({
     multiply: '*',
     modulo: '%',
     comment: {
-      match: /💬[^\n]*/,
-      value: s => s.slice(1),
+      match: new RegExp(`${speechBallooonRegex.source}.*$`),
+      value: s => s.slice(2), // 2 because the the speech balloon emoji is 2 unicode characters
     },
     block_delimiter: {
-      match: /[🌵🎄🌲🌳🌴]+/,
+      match: new RegExp(`(?:${treeRegex.source})+`),
       lineBreaks: true,
     },
     string_literal: {
@@ -34,8 +42,9 @@ const lexer = moo.states({
       match: /\d+(?:\.\d+)?/,
       value: s => Number(s),
     },
+    interp_end: { match: '✨', pop: 1 },
     identifier: {
-      match: new RegExp(emojiRegex),
+      match: emojiRegex(),
       type: moo.keywords({
         import: '👏',
         exit: '👋',
@@ -54,21 +63,8 @@ const lexer = moo.states({
   template: {
     template_end: { match: /`/, pop: 1 },
     const: /[^\n`✨]+/,
-    interp: { match: '✨', push: 'interp' },
-  },
-  // TODO: this is hacky. fix this
-  interp: {
-    identifier: { match: new RegExp(emojiRegex), pop: 1 },
+    interp_start: { match: '✨', push: 'main' },
   },
 });
 
-lexer.reset(`
-👏 📟
-\`Hello ✨🆔 sam!\`
-🚌
-📟👂 "What's your name?"
-`);
-
-const tokens = Array.from(lexer);
-
-tokens; // ?
+module.exports = lexer;
