@@ -4,10 +4,18 @@
 function id(x) { return x[0]; }
 
   const lexer = require('./lexer');
+
+
+  function formatToken(token) {
+    return {
+      type: token.type,
+      value: token.value
+    }
+  }
 var grammar = {
     Lexer: lexer,
     ParserRules: [
-    {"name": "input", "symbols": ["statements"], "postprocess": id},
+    {"name": "main", "symbols": ["statements"], "postprocess": id},
     {"name": "statements", "symbols": ["statement"], "postprocess": 
         d => [d[0]]
              },
@@ -17,8 +25,8 @@ var grammar = {
           d[4]
         ]
              },
-    {"name": "statements", "symbols": ["_", (lexer.has("nl") ? {type: "nl"} : nl), "statements"], "postprocess": 
-        d => d[2]
+    {"name": "statements", "symbols": ["statements", "_", (lexer.has("nl") ? {type: "nl"} : nl)], "postprocess": 
+        d => d[0]
              },
     {"name": "statements", "symbols": ["_"], "postprocess": 
         d => []
@@ -26,13 +34,24 @@ var grammar = {
     {"name": "statement", "symbols": ["line_comment"], "postprocess": id},
     {"name": "statement", "symbols": ["import_statement"], "postprocess": id},
     {"name": "statement", "symbols": ["control_statement"], "postprocess": id},
-    {"name": "statement", "symbols": ["expression_statement"], "postprocess": id},
     {"name": "statement", "symbols": ["assignment_statement"], "postprocess": id},
-    {"name": "import_statement", "symbols": [(lexer.has("import") ? {type: "import"} : import), "_", "identifier"]},
+    {"name": "statement", "symbols": ["expression_statement"], "postprocess": id},
+    {"name": "import_statement", "symbols": [(lexer.has("import_clap") ? {type: "import_clap"} : import_clap), "_", "identifier"], "postprocess": 
+        d => ({
+           type: 'import',
+           reference: d[2]
+        })
+             },
     {"name": "control_statement", "symbols": ["if_statement"], "postprocess": id},
-    {"name": "if_statement", "symbols": [(lexer.has("if") ? {type: "if"} : if), "_", "expression", "_", "code_block"]},
+    {"name": "if_statement", "symbols": [(lexer.has("_if") ? {type: "_if"} : _if), "_", "expression", "_", "code_block"]},
+    {"name": "assignment_statement", "symbols": ["assignees", "_", (lexer.has("assignment") ? {type: "assignment"} : assignment), "_", "call_expression"], "postprocess": 
+        d => ({
+          type: 'assignment',
+          asignees: [...d[0]],
+          init: d[4]
+        })
+             },
     {"name": "expression_statement", "symbols": ["expression"], "postprocess": id},
-    {"name": "assignment_statement", "symbols": ["assignees", "_", (lexer.has("assignment") ? {type: "assignment"} : assignment), "_", "call_expression"]},
     {"name": "assignees", "symbols": ["identifier"], "postprocess": 
         d => [d[0]]
              },
@@ -46,14 +65,46 @@ var grammar = {
         d => d[2]
              },
     {"name": "binary_expression", "symbols": ["assignment_expression"], "postprocess": id},
-    {"name": "assignment_expression", "symbols": ["identifier", "_", (lexer.has("assignment") ? {type: "assignment"} : assignment), "_", "expression"]},
-    {"name": "unary_expression", "symbols": ["member_expression"], "postprocess": id},
+    {"name": "assignment_expression", "symbols": ["assignment_statement"], "postprocess": id},
     {"name": "unary_expression", "symbols": ["call_expression"], "postprocess": id},
+    {"name": "unary_expression", "symbols": ["template_expression"], "postprocess": id},
     {"name": "unary_expression", "symbols": ["string_literal"], "postprocess": id},
     {"name": "unary_expression", "symbols": ["number_literal"], "postprocess": id},
-    {"name": "member_expression", "symbols": ["member_expression", "call_expression"]},
-    {"name": "call_expression", "symbols": ["identifier"]},
-    {"name": "call_expression", "symbols": ["identifier", "__", "argument_list"]},
+    {"name": "template_expression", "symbols": [(lexer.has("template_start") ? {type: "template_start"} : template_start), "template_body", (lexer.has("template_end") ? {type: "template_end"} : template_end)]},
+    {"name": "template_body$subexpression$1", "symbols": [(lexer.has("_const") ? {type: "_const"} : _const)]},
+    {"name": "template_body$subexpression$1", "symbols": ["template_interp"]},
+    {"name": "template_body", "symbols": ["template_body", "template_body$subexpression$1"]},
+    {"name": "template_body", "symbols": [], "postprocess": 
+        () => null
+              },
+    {"name": "template_interp", "symbols": [(lexer.has("interp_start") ? {type: "interp_start"} : interp_start), "expression", (lexer.has("interp_end") ? {type: "interp_end"} : interp_end)]},
+    {"name": "call_expression", "symbols": ["identifier"], "postprocess": 
+        d => ({
+           type: 'call_expression',
+           callee: d[0],
+           arguments: [],
+        })
+             },
+    {"name": "call_expression", "symbols": ["identifier", "__", "argument_list"], "postprocess": 
+        d => ({
+           type: 'call_expression',
+           callee: d[0],
+           arguments: [...d[2]]
+        })
+             },
+    {"name": "call_expression", "symbols": ["member_expression"], "postprocess": 
+        d => ({
+           type: 'call_expression',
+           callee: d[0]
+        })
+             },
+    {"name": "member_expression", "symbols": ["identifier", "call_expression"], "postprocess": 
+        d => ({
+           type: 'member_expression',
+           object: d[0],
+           property: d[1] 
+        })
+             },
     {"name": "argument_list", "symbols": [], "postprocess": 
         () => []
              },
@@ -63,18 +114,18 @@ var grammar = {
     {"name": "argument_list", "symbols": ["argument_list", "__", "expression"], "postprocess": 
         d => [...d[0], d[2]]
              },
-    {"name": "line_comment", "symbols": [(lexer.has("comment") ? {type: "comment"} : comment)]},
-    {"name": "number_literal", "symbols": [(lexer.has("number_literal") ? {type: "number_literal"} : number_literal)]},
-    {"name": "string_literal", "symbols": [(lexer.has("string_literal") ? {type: "string_literal"} : string_literal)]},
-    {"name": "identifier", "symbols": [(lexer.has("identifier") ? {type: "identifier"} : identifier)]},
+    {"name": "line_comment", "symbols": [(lexer.has("comment") ? {type: "comment"} : comment)], "postprocess": d => formatToken(d[0])},
+    {"name": "number_literal", "symbols": [(lexer.has("number_literal") ? {type: "number_literal"} : number_literal)], "postprocess": d => formatToken(d[0])},
+    {"name": "string_literal", "symbols": [(lexer.has("string_literal") ? {type: "string_literal"} : string_literal)], "postprocess": d => formatToken(d[0])},
+    {"name": "identifier", "symbols": [(lexer.has("identifier") ? {type: "identifier"} : identifier)], "postprocess": d => formatToken(d[0])},
     {"name": "__$ebnf$1", "symbols": [(lexer.has("ws") ? {type: "ws"} : ws)]},
     {"name": "__$ebnf$1", "symbols": ["__$ebnf$1", (lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "__", "symbols": ["__$ebnf$1"]},
+    {"name": "__", "symbols": ["__$ebnf$1"], "postprocess": () => null},
     {"name": "_$ebnf$1", "symbols": []},
     {"name": "_$ebnf$1", "symbols": ["_$ebnf$1", (lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "_", "symbols": ["_$ebnf$1"]}
+    {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": () => null}
 ]
-  , ParserStart: "input"
+  , ParserStart: "main"
 }
 if (typeof module !== 'undefined'&& typeof module.exports !== 'undefined') {
    module.exports = grammar;

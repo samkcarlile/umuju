@@ -4,7 +4,16 @@
 
 @lexer lexer
 
-input -> statements   {% id %}
+@{%
+  function formatToken(token) {
+    return {
+      type: token.type,
+      value: token.value
+    }
+  }
+%}
+
+main -> statements   {% id %}
 
 statements
   -> statement
@@ -18,9 +27,9 @@ statements
           d[4]
         ]
      %}
-  |  _ %nl statements
+  |  statements _ %nl 
      {%
-        d => d[2]
+        d => d[0]
      %}
   |  _
      {%
@@ -31,24 +40,36 @@ statement
   -> line_comment           {% id %}
   |  import_statement       {% id %}
   |  control_statement      {% id %}
-  |  expression_statement   {% id %}
   |  assignment_statement   {% id %}
+  |  expression_statement   {% id %}
 
 import_statement
-  -> %import _ identifier
+  -> %import_clap _ identifier
+     {%
+         d => ({
+            type: 'import',
+            reference: d[2]
+         })
+     %}
 
 control_statement
   -> if_statement           {% id %}
 
 if_statement
-  -> %if _ expression _ code_block 
-
-
-expression_statement
-  -> expression             {% id %}
+  -> %_if _ expression _ code_block 
 
 assignment_statement
   -> assignees _ %assignment _ call_expression
+     {%
+        d => ({
+          type: 'assignment',
+          asignees: [...d[0]],
+          init: d[4]
+        })
+     %}
+
+expression_statement
+  -> expression             {% id %}
 
 assignees
   -> identifier
@@ -79,30 +100,70 @@ binary_expression
   -> assignment_expression  {% id %}
 
 assignment_expression
-  -> identifier _ %assignment _ expression
+  -> assignment_statement   {% id %}
 
 unary_expression
-  -> member_expression      {% id %}
   # note that an identifier is not a unary expression!
   # All identifiers are considered call expressions
-  |  call_expression        {% id %}
-  # TODO:
-  # |  template_expression    {% id %}
+  # if they're not part of an assignment
+  -> call_expression        {% id %}
+  |  template_expression    {% id %}
   |  string_literal         {% id %}
   |  number_literal         {% id %}
 
-# doing the member expression this way allows for some wierd
-# things like this: 🏠🌷 2💧
-# But honestly....I think that's kind of ok!
-member_expression
-  -> member_expression call_expression
+template_expression
+  -> %template_start template_body %template_end
+
+template_body
+  ->  template_body ( %_const | template_interp )
+  |   null
+      {%
+          () => null
+      %}
+
+template_interp
+  -> %interp_start expression %interp_end
 
 # possibly a strange note about the call expression...
 # When you use an identifier as a variable, you're actually
 # "calling" that variable to get it's value
 call_expression
   -> identifier
+     {%
+         d => ({
+            type: 'call_expression',
+            callee: d[0],
+            arguments: [],
+         })
+     %}
   |  identifier __ argument_list
+     {%
+         d => ({
+            type: 'call_expression',
+            callee: d[0],
+            arguments: [...d[2]]
+         })
+     %}
+  |  member_expression
+     {%
+         d => ({
+            type: 'call_expression',
+            callee: d[0]
+         })
+     %}
+
+# doing the member expression this way allows for some wierd
+# things like this: 🏠🌷 2💧
+# But honestly....I think that's kind of ok!
+member_expression
+  -> identifier call_expression
+     {%
+         d => ({
+            type: 'member_expression',
+            object: d[0],
+            property: d[1] 
+         })
+     %}
 
 argument_list
   -> null
@@ -118,14 +179,18 @@ argument_list
         d => [...d[0], d[2]]
      %}
 
-line_comment -> %comment
+line_comment 
+  -> %comment               {% d => formatToken(d[0]) %}
 
-number_literal -> %number_literal
+number_literal 
+  -> %number_literal        {% d => formatToken(d[0]) %}
 
-string_literal -> %string_literal
+string_literal 
+  -> %string_literal        {% d => formatToken(d[0]) %}
 
-identifier -> %identifier
+identifier 
+  -> %identifier            {% d => formatToken(d[0]) %}
 
-__ -> %ws:+
+__ -> %ws:+                 {% () => null %}
 
-_ -> %ws:*
+_ -> %ws:*                  {% () => null %}

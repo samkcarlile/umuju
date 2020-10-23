@@ -6,6 +6,6 @@
   "rules": {
     "no-console": "off",
     "no-misleading-character-class": "warn"
-  },
-  "ignorePatterns": ["src/parser/grammar.js"]
+  }
+  // "ignorePatterns": ["src/parser/grammar.js"]
 }
