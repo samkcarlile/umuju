@@ -30,18 +30,22 @@ statements
 statement
   -> line_comment           {% id %}
   |  import_statement       {% id %}
+  |  control_statement      {% id %}
   |  expression_statement   {% id %}
   |  assignment_statement   {% id %}
-  |  control_statement      {% id %}
 
 import_statement
   -> %import _ identifier
 
-expression_statement
-  -> expression             {% id %}
-
 control_statement
   -> if_statement           {% id %}
+
+if_statement
+  -> %if _ expression _ code_block 
+
+
+expression_statement
+  -> expression             {% id %}
 
 assignment_statement
   -> assignees _ %assignment _ call_expression
@@ -59,6 +63,17 @@ assignees
 expression
   -> binary_expression      {% id %}
   |  unary_expression       {% id %}
+  # I don't know if code blocks can be expressions yet, but for now they are
+  |  code_block             {% id %}
+
+# TODO: add support for new lines wtf!
+code_block
+  # the only problem with reusing the statements rule here is that
+  # import statements should not appear in a code block.
+  -> %block_delimiter _ statements _ %block_delimiter
+     {%
+        d => d[2]
+     %}
 
 binary_expression
   -> assignment_expression  {% id %}
