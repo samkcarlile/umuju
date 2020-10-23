@@ -17,12 +17,16 @@ const user_input = `
 📟🗣 \`Hello ✨🏷✨!\`
 `;
 
+// const input = fs
+//   .readFileSync(path.join(__dirname, '../../data/user_input.umu'), 'utf-8')
+//   .split('\n')[0];
+
 lexer.reset(user_input);
 
 Array.from(lexer).map(({ type, value }) => [type, value]); // ?
 
 try {
-  parser.feed(hello_world);
+  parser.feed(user_input);
 } catch (err) {
   console.error(err);
 }

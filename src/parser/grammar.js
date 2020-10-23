@@ -8,7 +8,7 @@ function id(x) { return x[0]; }
 
   function formatToken(token) {
     return {
-      type: token.type,
+      type: token.type.startsWith('_') ? token.type.slice(1) : token.type,
       value: token.value
     }
   }

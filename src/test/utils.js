@@ -8,8 +8,10 @@ const getData = datafile =>
 
 /** Helper class to feed a parser some input line-by-line */
 class LineFeeder {
-  constructor(input) {
+  constructor(input, logChunk = false) {
     this.parser = Parser();
+    this.logChunk = logChunk;
+
     this.lines = input.split('\n');
     this.currentLine = 0;
     this.currentResultsOffset = 0;
@@ -21,13 +23,19 @@ class LineFeeder {
     const end = this.currentLine + n;
     if (end > this.lines.length) return false;
 
-    const chunk = this.lines.slice(this.currentLine, end).join('\n');
+    const chunk = this.lines
+      .slice(this.currentLine, end)
+      // !! Previous source of a testing bug. If we only .join('\n'), we loose the linebreaks on empty lines when n = 1
+      .map(line => `${line}\n`)
+      .join('');
+    this.logChunk && console.log(`CHUNK: ${JSON.stringify(chunk)}`);
 
     const resultsOffset = this.currentResultsOffset;
     try {
       this.parser.feed(chunk);
       this.currentResultsOffset = this.parser.results[0].length;
     } catch (err) {
+      console.log(err);
       return err;
     }
 
@@ -55,6 +63,16 @@ const nodeTypeHelpers = {
     type: 'member_expression',
     object,
     property,
+  }),
+  TemplateExpression: ({ elements }) => ({
+    type: 'template_expression',
+    elements,
+  }),
+  Const: ({ value }) => ({ type: 'const', value }),
+  Assignment: ({ assignees, init }) => ({
+    type: 'assignment',
+    assignees,
+    init,
   }),
 };
 

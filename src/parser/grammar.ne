@@ -7,7 +7,7 @@
 @{%
   function formatToken(token) {
     return {
-      type: token.type,
+      type: token.type.startsWith('_') ? token.type.slice(1) : token.type,
       value: token.value
     }
   }
@@ -20,10 +20,12 @@
 main -> statements   {% id %}
 
 statements
+  # program could be a singular statemeent
   -> statement
      {%
         d => [d[0]]
      %}
+  # program could be multiple statements separated by new lines
   |  statements _ %nl _ statement
      {%
         d => [
@@ -31,7 +33,7 @@ statements
           d[4]
         ]
      %}
-  |  statements _ %nl 
+  |  statements _ %nl
      {%
         d => d[0]
      %}
