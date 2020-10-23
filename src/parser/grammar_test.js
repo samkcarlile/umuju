@@ -22,7 +22,7 @@ lexer.reset(user_input);
 Array.from(lexer).map(({ type, value }) => [type, value]); // ?
 
 try {
-  parser.feed(user_input);
+  parser.feed(hello_world);
 } catch (err) {
   console.error(err);
 }

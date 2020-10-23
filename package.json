@@ -19,6 +19,7 @@
     "regenerate": "^1.4.1"
   },
   "devDependencies": {
+    "@types/jest": "^26.0.15",
     "eslint": "^7.11.0",
     "eslint-config-prettier": "^6.14.0",
     "eslint-config-problems": "^5.0.0",

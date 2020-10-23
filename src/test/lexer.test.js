@@ -1,10 +1,5 @@
 const lexer = require('../parser/lexer');
-const fs = require('fs');
-const path = require('path');
-
-// Helper to read a file from the data directory
-const getData = datafile =>
-  fs.readFileSync(path.resolve(`data/${datafile}`), 'utf-8');
+const { getData } = require('./utils');
 
 // Helper to return an array of tokens from some input
 const tokenize = input => Array.from(lexer.reset(input));
@@ -28,7 +23,7 @@ test('lexes hello_world.umu', () => {
   expect(tokens).toHaveLength(5);
   expectTypes(tokens, [
     // 👏 📟
-    'import',
+    'import_clap',
     'identifier',
 
     // 📟🗣 "Hello World!"
@@ -45,7 +40,7 @@ test('lexes user_input.umu', () => {
   expect(tokens).toHaveLength(16);
   expectTypes(tokens, [
     // 👏 📟
-    'import',
+    'import_clap',
     'identifier',
 
     // 🏷 = 📟👂 "What’s your name?"
@@ -59,11 +54,11 @@ test('lexes user_input.umu', () => {
     'identifier',
     'identifier',
     'template_start',
-    'const',
+    '_const',
     'interp_start',
     'identifier',
     'interp_end',
-    'const',
+    '_const',
     'template_end',
   ]);
 });
@@ -75,8 +70,8 @@ test('if statement', () => {
   expect(tokens).toHaveLength(5);
 
   expectTypes(tokens, [
-    'if',
-    'true',
+    '_if',
+    '_true',
     'block_delimiter',
     'exit',
     'block_delimiter',
@@ -191,7 +186,7 @@ test('boolean expression', () => {
     'assignment',
     'identifier',
     'eq',
-    'true',
+    '_true',
 
     // 🎃 = 🐰 && 6 🌔 10
     'identifier',
