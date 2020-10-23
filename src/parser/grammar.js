@@ -12,6 +12,10 @@ function id(x) { return x[0]; }
       value: token.value
     }
   }
+
+  function isExpression(node) {
+    return token.type && token.type.endsWith("_expression");
+  }
 var grammar = {
     Lexer: lexer,
     ParserRules: [
@@ -47,7 +51,7 @@ var grammar = {
     {"name": "assignment_statement", "symbols": ["assignees", "_", (lexer.has("assignment") ? {type: "assignment"} : assignment), "_", "call_expression"], "postprocess": 
         d => ({
           type: 'assignment',
-          asignees: [...d[0]],
+          assignees: [...d[0]],
           init: d[4]
         })
              },
@@ -70,14 +74,25 @@ var grammar = {
     {"name": "unary_expression", "symbols": ["template_expression"], "postprocess": id},
     {"name": "unary_expression", "symbols": ["string_literal"], "postprocess": id},
     {"name": "unary_expression", "symbols": ["number_literal"], "postprocess": id},
-    {"name": "template_expression", "symbols": [(lexer.has("template_start") ? {type: "template_start"} : template_start), "template_body", (lexer.has("template_end") ? {type: "template_end"} : template_end)]},
-    {"name": "template_body$subexpression$1", "symbols": [(lexer.has("_const") ? {type: "_const"} : _const)]},
+    {"name": "template_expression$ebnf$1", "symbols": ["template_body"], "postprocess": id},
+    {"name": "template_expression$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "template_expression", "symbols": [(lexer.has("template_start") ? {type: "template_start"} : template_start), "template_expression$ebnf$1", (lexer.has("template_end") ? {type: "template_end"} : template_end)], "postprocess": 
+        d => ({
+          type: 'template_expression',
+          elements: d[1]
+        })
+             },
+    {"name": "template_body$subexpression$1", "symbols": ["const"]},
     {"name": "template_body$subexpression$1", "symbols": ["template_interp"]},
-    {"name": "template_body", "symbols": ["template_body", "template_body$subexpression$1"]},
-    {"name": "template_body", "symbols": [], "postprocess": 
-        () => null
+    {"name": "template_body", "symbols": ["template_body", "template_body$subexpression$1"], "postprocess": 
+        d => [...d[0], d[1][0]]
               },
-    {"name": "template_interp", "symbols": [(lexer.has("interp_start") ? {type: "interp_start"} : interp_start), "expression", (lexer.has("interp_end") ? {type: "interp_end"} : interp_end)]},
+    {"name": "template_body", "symbols": [], "postprocess": 
+        () => []
+              },
+    {"name": "template_interp", "symbols": [(lexer.has("interp_start") ? {type: "interp_start"} : interp_start), "expression", (lexer.has("interp_end") ? {type: "interp_end"} : interp_end)], "postprocess": 
+        d => d[1]
+             },
     {"name": "call_expression", "symbols": ["identifier"], "postprocess": 
         d => ({
            type: 'call_expression',
@@ -105,19 +120,20 @@ var grammar = {
            property: d[1] 
         })
              },
-    {"name": "argument_list", "symbols": [], "postprocess": 
-        () => []
-             },
     {"name": "argument_list", "symbols": ["expression"], "postprocess": 
         d => [d[0]]
              },
     {"name": "argument_list", "symbols": ["argument_list", "__", "expression"], "postprocess": 
         d => [...d[0], d[2]]
              },
+    {"name": "argument_list", "symbols": [], "postprocess": 
+        () => []
+             },
     {"name": "line_comment", "symbols": [(lexer.has("comment") ? {type: "comment"} : comment)], "postprocess": d => formatToken(d[0])},
     {"name": "number_literal", "symbols": [(lexer.has("number_literal") ? {type: "number_literal"} : number_literal)], "postprocess": d => formatToken(d[0])},
     {"name": "string_literal", "symbols": [(lexer.has("string_literal") ? {type: "string_literal"} : string_literal)], "postprocess": d => formatToken(d[0])},
     {"name": "identifier", "symbols": [(lexer.has("identifier") ? {type: "identifier"} : identifier)], "postprocess": d => formatToken(d[0])},
+    {"name": "const", "symbols": [(lexer.has("_const") ? {type: "_const"} : _const)], "postprocess": d => formatToken(d[0])},
     {"name": "__$ebnf$1", "symbols": [(lexer.has("ws") ? {type: "ws"} : ws)]},
     {"name": "__$ebnf$1", "symbols": ["__$ebnf$1", (lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "__", "symbols": ["__$ebnf$1"], "postprocess": () => null},

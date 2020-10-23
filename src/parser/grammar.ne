@@ -11,7 +11,11 @@
       value: token.value
     }
   }
-%}
+
+  function isExpression(node) {
+    return token.type && token.type.endsWith("_expression");
+  }
+%} 
 
 main -> statements   {% id %}
 
@@ -63,7 +67,7 @@ assignment_statement
      {%
         d => ({
           type: 'assignment',
-          asignees: [...d[0]],
+          assignees: [...d[0]],
           init: d[4]
         })
      %}
@@ -112,17 +116,29 @@ unary_expression
   |  number_literal         {% id %}
 
 template_expression
-  -> %template_start template_body %template_end
+  -> %template_start template_body:? %template_end
+     {%
+        d => ({
+          type: 'template_expression',
+          elements: d[1]
+        })
+     %}
 
 template_body
-  ->  template_body ( %_const | template_interp )
+  ->  template_body ( const | template_interp )
+      {%
+        d => [...d[0], d[1][0]]
+      %}
   |   null
       {%
-          () => null
+          () => []
       %}
 
 template_interp
   -> %interp_start expression %interp_end
+     {%
+        d => d[1]
+     %}
 
 # possibly a strange note about the call expression...
 # When you use an identifier as a variable, you're actually
@@ -166,17 +182,17 @@ member_expression
      %}
 
 argument_list
-  -> null
-     {%
-        () => []
-     %}
-  |  expression
+  -> expression
      {%
         d => [d[0]]
      %}
   |  argument_list __ expression
      {%
         d => [...d[0], d[2]]
+     %}
+  |  null
+     {%
+        () => []
      %}
 
 line_comment 
@@ -190,6 +206,9 @@ string_literal
 
 identifier 
   -> %identifier            {% d => formatToken(d[0]) %}
+
+const
+  -> %_const                {% d => formatToken(d[0]) %}
 
 __ -> %ws:+                 {% () => null %}
 
