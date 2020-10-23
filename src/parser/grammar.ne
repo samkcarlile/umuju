@@ -63,7 +63,11 @@ if_statement
   -> %_if _ expression _ code_block 
 
 assignment_statement
-  -> assignees _ %assignment _ call_expression
+  # we want to be able to do multi-assignment like this:
+  # 🍌, 🍊 = "hey", 45.9
+  # But we also want to be able to do assignments where the init is a
+  # call_expression like this: 🍐 = 🏠 "first floor"
+  -> assignees _ %assignment _ initializers
      {%
         d => ({
           type: 'assignment',
@@ -81,6 +85,16 @@ assignees
         d => [d[0]]
      %}
   |  assignees _ %comma _ identifier
+     {%
+        d => [...d[0], d[4]]
+     %}
+
+initializers
+  -> expression
+     {%
+        d => [d[0]]
+     %}
+  |  initializers _ %comma _ expression
      {%
         d => [...d[0], d[4]]
      %}
@@ -125,7 +139,7 @@ template_expression
      %}
 
 template_body
-  ->  template_body ( const | template_interp )
+  ->  template_body (const | template_interp)
       {%
         d => [...d[0], d[1][0]]
       %}
@@ -141,30 +155,31 @@ template_interp
      %}
 
 # possibly a strange note about the call expression...
-# When you use an identifier as a variable, you're actually
+# When you use a single identifier as a variable, you're actually
 # "calling" that variable to get it's value
 call_expression
-  -> identifier
+  -> member_expression
      {%
          d => ({
             type: 'call_expression',
             callee: d[0],
-            arguments: [],
+            args: [],
          })
      %}
-  |  identifier __ argument_list
+  |  identifier
      {%
          d => ({
             type: 'call_expression',
             callee: d[0],
-            arguments: [...d[2]]
+            args: [],
          })
      %}
-  |  member_expression
+  |  (identifier | member_expression) __ argument_list
      {%
          d => ({
             type: 'call_expression',
-            callee: d[0]
+            callee: d[0][0],
+            args: [...d[2]]
          })
      %}
 
@@ -172,7 +187,7 @@ call_expression
 # things like this: 🏠🌷 2💧
 # But honestly....I think that's kind of ok!
 member_expression
-  -> identifier call_expression
+  -> call_expression identifier
      {%
          d => ({
             type: 'member_expression',

@@ -48,7 +48,7 @@ var grammar = {
              },
     {"name": "control_statement", "symbols": ["if_statement"], "postprocess": id},
     {"name": "if_statement", "symbols": [(lexer.has("_if") ? {type: "_if"} : _if), "_", "expression", "_", "code_block"]},
-    {"name": "assignment_statement", "symbols": ["assignees", "_", (lexer.has("assignment") ? {type: "assignment"} : assignment), "_", "call_expression"], "postprocess": 
+    {"name": "assignment_statement", "symbols": ["assignees", "_", (lexer.has("assignment") ? {type: "assignment"} : assignment), "_", "initializers"], "postprocess": 
         d => ({
           type: 'assignment',
           assignees: [...d[0]],
@@ -60,6 +60,12 @@ var grammar = {
         d => [d[0]]
              },
     {"name": "assignees", "symbols": ["assignees", "_", (lexer.has("comma") ? {type: "comma"} : comma), "_", "identifier"], "postprocess": 
+        d => [...d[0], d[4]]
+             },
+    {"name": "initializers", "symbols": ["expression"], "postprocess": 
+        d => [d[0]]
+             },
+    {"name": "initializers", "symbols": ["initializers", "_", (lexer.has("comma") ? {type: "comma"} : comma), "_", "expression"], "postprocess": 
         d => [...d[0], d[4]]
              },
     {"name": "expression", "symbols": ["binary_expression"], "postprocess": id},
@@ -93,27 +99,30 @@ var grammar = {
     {"name": "template_interp", "symbols": [(lexer.has("interp_start") ? {type: "interp_start"} : interp_start), "expression", (lexer.has("interp_end") ? {type: "interp_end"} : interp_end)], "postprocess": 
         d => d[1]
              },
+    {"name": "call_expression", "symbols": ["member_expression"], "postprocess": 
+        d => ({
+           type: 'call_expression',
+           callee: d[0],
+           args: [],
+        })
+             },
     {"name": "call_expression", "symbols": ["identifier"], "postprocess": 
         d => ({
            type: 'call_expression',
            callee: d[0],
-           arguments: [],
+           args: [],
         })
              },
-    {"name": "call_expression", "symbols": ["identifier", "__", "argument_list"], "postprocess": 
+    {"name": "call_expression$subexpression$1", "symbols": ["identifier"]},
+    {"name": "call_expression$subexpression$1", "symbols": ["member_expression"]},
+    {"name": "call_expression", "symbols": ["call_expression$subexpression$1", "__", "argument_list"], "postprocess": 
         d => ({
            type: 'call_expression',
-           callee: d[0],
-           arguments: [...d[2]]
+           callee: d[0][0],
+           args: [...d[2]]
         })
              },
-    {"name": "call_expression", "symbols": ["member_expression"], "postprocess": 
-        d => ({
-           type: 'call_expression',
-           callee: d[0]
-        })
-             },
-    {"name": "member_expression", "symbols": ["identifier", "call_expression"], "postprocess": 
+    {"name": "member_expression", "symbols": ["call_expression", "identifier"], "postprocess": 
         d => ({
            type: 'member_expression',
            object: d[0],
