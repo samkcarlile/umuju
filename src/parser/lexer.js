@@ -2,6 +2,9 @@ const moo = require('moo');
 const {
   treeRegex,
   speechBallooonRegex,
+  equalMoonRegex,
+  greaterThanMoonRegex,
+  lessThanMoonRegex,
   otherEmojiRegex,
 } = require('./customEmojiRegex');
 const emojiRegex = () =>
@@ -17,9 +20,9 @@ const lexer = moo.states({
     and: '&&',
     or: '||',
     assignment: '=',
-    gt: '🌖',
-    lt: '🌔',
-    eq: '🌓',
+    gt: greaterThanMoonRegex,
+    lt: lessThanMoonRegex,
+    eq: equalMoonRegex,
     not: '❗️',
     plus: '+',
     minus: '-',

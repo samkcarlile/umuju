@@ -8,6 +8,21 @@ const treeRegex = regenerate()
   .add(0x1f384) // Christmas tree:  https://www.unicode.org/emoji/charts/emoji-list.html#1f384
   .toRegExp();
 
+const equalMoonRegex = regenerate()
+  .add(0x1f313) // first quarter moon:  https://www.unicode.org/emoji/charts/emoji-list.html#1f313
+  .add(0x1f317) // last quarter moon:  https://www.unicode.org/emoji/charts/emoji-list.html#1f317
+  .toRegExp();
+
+const lessThanMoonRegex = regenerate()
+  .add(0x1f312) // waxing crescent moon: https://www.unicode.org/emoji/charts/emoji-list.html#1f312
+  .add(0x1f314) // waxing gibbous moon:  https://www.unicode.org/emoji/charts/emoji-list.html#1f314
+  .toRegExp();
+
+const greaterThanMoonRegex = regenerate()
+  .add(0x1f316) // waning gibbous moon:  https://www.unicode.org/emoji/charts/emoji-list.html#1f316
+  .add(0x1f318) // waning crescent moon: https://www.unicode.org/emoji/charts/emoji-list.html#1f318
+  .toRegExp();
+
 const speechBallooonRegex = regenerate(0x1f4ac).toRegExp(); // speech balloon
 
 const otherEmojiRegex = regenerate()
@@ -18,5 +33,8 @@ const otherEmojiRegex = regenerate()
 module.exports = {
   otherEmojiRegex,
   treeRegex,
+  equalMoonRegex,
+  lessThanMoonRegex,
+  greaterThanMoonRegex,
   speechBallooonRegex,
 };

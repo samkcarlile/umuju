@@ -4,29 +4,21 @@ const lexer = require('./lexer');
 
 const parser = new nearley.Parser(nearley.Grammar.fromCompiled(grammar));
 
-const hello_world = `
-👏 📟
-
-📟🗣 "Hello World!"
+const input = `
+🤔 🌲🌲 🆔 🌖 0 && 🆔 🌘 200 🌲🌲 🌳
+  📟🗣 "ID must be between 1 and 200 (inclusive)"
+  👋
+🌳
 `;
 
-const user_input = `
-👏 📟
+const precedence_test = `🆔 🌖 0 && 🆔 🌘 200`;
 
-🏷 = 📟👂 "What’s your name?"
-📟🗣 \`Hello ✨🏷✨!\`
-`;
-
-// const input = fs
-//   .readFileSync(path.join(__dirname, '../../data/user_input.umu'), 'utf-8')
-//   .split('\n')[0];
-
-lexer.reset(user_input);
+lexer.reset(precedence_test);
 
 Array.from(lexer).map(({ type, value }) => [type, value]); // ?
 
 try {
-  parser.feed(user_input);
+  parser.feed(precedence_test);
 } catch (err) {
   console.error(err);
 }

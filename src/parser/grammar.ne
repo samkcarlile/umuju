@@ -20,12 +20,10 @@
 main -> statements   {% id %}
 
 statements
-  # program could be a singular statemeent
   -> statement
      {%
         d => [d[0]]
      %}
-  # program could be multiple statements separated by new lines
   |  statements _ %nl _ statement
      {%
         d => [
@@ -45,6 +43,7 @@ statements
 statement
   -> line_comment           {% id %}
   |  import_statement       {% id %}
+  |  exit_statement         {% id %}
   |  control_statement      {% id %}
   |  assignment_statement   {% id %}
   |  expression_statement   {% id %}
@@ -58,11 +57,20 @@ import_statement
          })
      %}
 
+exit_statement -> %exit     {% d => formatToken(d[0]) %}
+
 control_statement
   -> if_statement           {% id %}
 
 if_statement
-  -> %_if _ expression _ code_block 
+  -> %_if _ expression _ code_block
+     {%
+        d => ({
+          type: 'if_statement',
+          test: d[2],
+          consequent: d[4]
+        })
+     %}
 
 assignment_statement
   # we want to be able to do multi-assignment like this:
@@ -113,14 +121,31 @@ code_block
   # import statements should not appear in a code block.
   -> %block_delimiter _ statements _ %block_delimiter
      {%
-        d => d[2]
+        d => ({
+          type: 'code_block',
+          statements: d[2]
+        })
      %}
 
 binary_expression
   -> assignment_expression  {% id %}
+  # TODO: this is not working properly
+  |  logical_expression     {% id %}
+  |  binary_operation       {% id %}
 
 assignment_expression
   -> assignment_statement   {% id %}
+
+logical_expression
+  -> expression _ (%and | %or) _ expression
+     {%
+        d => ({
+          type: 'logical_expression',
+          operator: d[2][0].type,
+          left: d[0],
+          right: d[4]
+        })
+     %}
 
 unary_expression
   # note that an identifier is not a unary expression!
@@ -130,6 +155,7 @@ unary_expression
   |  template_expression    {% id %}
   |  string_literal         {% id %}
   |  number_literal         {% id %}
+  |  unary_operation        {% id %}
 
 template_expression
   -> %template_start template_body:? %template_end
@@ -212,6 +238,33 @@ argument_list
         () => []
      %}
 
+binary_operation
+  -> expression _ binary_operator _ expression
+     {%
+        d => ({
+          type: 'binary_operation',
+          operator: d[2].type,
+          left: d[0],
+          right: d[4]
+        })
+     %}
+
+binary_operator
+  -> %eq                    {% id %}
+  |  %gt                    {% id %}
+  |  %lt                    {% id %}
+  |  %plus                  {% id %}
+  |  %minus                 {% id %}
+  |  %divide                {% id %}
+  |  %multiply              {% id %}
+  |  %modulo                {% id %}
+
+unary_operation
+  -> unary_operator expression
+
+unary_operator
+  -> %not                   {% id %}
+
 line_comment 
   -> %comment               {% d => formatToken(d[0]) %}
 
@@ -220,6 +273,9 @@ number_literal
 
 string_literal 
   -> %string_literal        {% d => formatToken(d[0]) %}
+
+boolean_literal
+  -> (%_true | %_false)     {% d => formatToken(d[0]) %}
 
 identifier 
   -> %identifier            {% d => formatToken(d[0]) %}

@@ -2,21 +2,21 @@
 👏 📡
 👏 📇
 
-🆔 = 🔢 ⬅️ 📟👂 "Which todo would you like to get?"
+🆔 = 🔢 📟👂 "Which todo would you like to get?"
 
 🤔 ❗️🌲🌲 🆔 🌖 0 && 🆔 🌘 200 🌲🌲 🌳
   📟🗣 "ID must be between 1 and 200 (inclusive)"
   👋
 🌳
 
-✉️, ⛔ = 📡🤏 `https://jsonplaceholder.typicode.com/todos/✨🆔✨`
+✉️,⛔ = 📡🤏 `https://jsonplaceholder.typicode.com/todos/✨🆔✨`
 🤔 ⛔ 🌴
   📟🗣 `There was an error! ✨⛔✨`
   👋
 🌴
 
 📄 = 📇👈 ✉️🚹
-✅ = ☯️ ⬅️ 📄🔑 "completed"
+✅ = ☯️ 📄🔑 "completed"
 
 🤔 ✅ 🎄
   📟🗣 `Todo #✨🆔✨ is complete!`
