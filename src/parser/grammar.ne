@@ -155,6 +155,7 @@ unary_expression
   |  template_expression    {% id %}
   |  string_literal         {% id %}
   |  number_literal         {% id %}
+  |  boolean_literal        {% id %}
   |  unary_operation        {% id %}
 
 template_expression
@@ -275,7 +276,7 @@ string_literal
   -> %string_literal        {% d => formatToken(d[0]) %}
 
 boolean_literal
-  -> (%_true | %_false)     {% d => formatToken(d[0]) %}
+  -> (%_true | %_false)     {% d => formatToken(d[0][0]) %}
 
 identifier 
   -> %identifier            {% d => formatToken(d[0]) %}

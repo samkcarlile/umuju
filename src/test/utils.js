@@ -25,7 +25,7 @@ class LineFeeder {
 
     const chunk = this.lines
       .slice(this.currentLine, end)
-      // !! Previous source of a testing bug. If we only .join('\n'), we loose the linebreaks on empty lines when n = 1
+      // Previous source of a testing bug. If we only .join('\n'), we loose the linebreaks on empty lines when n = 1
       .map(line => `${line}\n`)
       .join('');
     this.logChunk && console.log(`CHUNK: ${JSON.stringify(chunk)}`);
@@ -54,6 +54,10 @@ const nodeTypeHelpers = {
   StringLiteral: ({ value }) => ({ type: 'string_literal', value }),
   NumberLiteral: ({ value }) => ({ type: 'number_literal', value }),
   Import: ({ reference }) => ({ type: 'import', reference }),
+  True: () => ({ type: 'true', value: '👍' }),
+  False: () => ({ type: 'false', value: '👎' }),
+  And: () => ({ type: 'and', value: '&&' }),
+  Or: () => ({ type: 'or', value: '||' }),
   CallExpression: ({ callee, args }) => ({
     type: 'call_expression',
     callee,
@@ -73,6 +77,12 @@ const nodeTypeHelpers = {
     type: 'assignment',
     assignees,
     init,
+  }),
+  LogicalExpression: ({ operator, left, right }) => ({
+    type: 'logical_expression',
+    operator,
+    left,
+    right,
   }),
 };
 
